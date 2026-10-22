@@ -51,6 +51,56 @@ It is then immediate to see that if each $upright("Reg")_j^(\( T \))$ grows subl
 
 In order to formally introduce counterfactual utility, we recall a bit of notation to deal with tree-form decision processes.
 
+
+=== Counterfactual values, Q-values, and conditional expectations <sec-cfr-values>
+
+Both a Q-value and a counterfactual value evaluate an action at a decision point, assuming that subsequent play follows the current strategies. The difference is how they account for _getting to_ that decision point.
+
+- A *Q-value* asks: “If I were at this decision point and took this action, what continuation payoff should I expect?”
+- A *counterfactual value* evaluates the same action while keeping the opponents' and chance's probabilities of reaching this decision point, but leaving out your own earlier action probabilities.
+
+// Keep the worked example and its table together.
+#block(breakable: false)[
+  #example[
+    Consider the following decision process.
+
+    - You choose $sans("enter")$ with probability 0.1; otherwise your payoff is 0.
+    - After $sans("enter")$, chance lets you continue with probability 0.2; otherwise your payoff is 0.
+    - If you continue, you reach decision point $j$, where action $upsans(A)$ pays 10 and action $upsans(B)$ pays 4.
+
+    The actual probability of reaching $j$ is $0.1 times 0.2 = 0.02$.
+
+    #align(center, table(
+      stroke: none,
+      columns: 4,
+      align: (left, right, right, right),
+      inset: .7em,
+      table.header([*Quantity*], [*Multiplier*], [*A*], [*B*]),
+      [Q-value], [1], [10], [4],
+      [Counterfactual value], [0.2], [2], [0.8],
+      [Expected payoff], [0.02], [0.2], [0.08],
+    ))
+
+    The $upsans(A)$ and $upsans(B)$ columns assume that you choose the corresponding action at $j$. The Q-value is the continuation value once the player is placed at $j$; the counterfactual value additionally keeps chance's 0.2 reach probability but not your $sans("enter")$ probability; the expected payoff of the whole game keeps both.
+  ] <ex-cfr-values>
+]
+
+More generally, fix all strategies in a perfect-recall game, and let $Q_(i)(j, a)$ and $v_(i)^("cf")(j, a)$ denote player $i$'s Q-value and counterfactual value of action $a in A_j$ at decision point $j$. By perfect recall, all histories in the same decision point $j$ share the same parent sequence of player $i$.
+
+Let $w_(-i)(j)$ denote the external (or counterfactual) reach probability of $j$: the probability weight contributed by opponents and chance, excluding player $i$'s own earlier action probabilities. Whenever $w_(-i)(j) > 0$, the Q-value is the counterfactual value normalized by this external reach probability:
+$ v_(i)^("cf")(j, a) = w_(-i)(j) dot Q_(i)(j, a). $
+
+Thus, $Q_(i)(j, a)$ describes the continuation value of choosing $a$ once the player is placed at $j$, whereas the counterfactual value also retains the probability that opponents and chance make $j$ possible. Player $i$'s own probability of reaching $j$ is deliberately excluded, while player $i$'s strategy after taking $a$ still matters. We use the unnormalized counterfactual-value convention here.
+
+If the event of reaching $j$ and choosing $a$ has positive probability under the current strategy profile, then $Q_(i)(j, a)$ agrees with the ordinary conditional expectation of the payoff given that event. However, the Q-value is an action value and can still be defined when player $i$'s own earlier strategy gives $j$ zero actual reach, or when the current strategy assigns zero probability to action $a$. In those cases, the corresponding ordinary conditional expectation is undefined.
+
+This is one reason CFR works with counterfactual values. Even if your strategy in @ex-cfr-values never chooses $sans("enter")$, the Q-values at $j$ remain 10 and 4, and the counterfactual values remain 2 and 0.8. A full-tree CFR update can therefore evaluate the actions at $j$ even when your current strategy never reaches it.
+
+*Connection to normal form* In a one-shot normal-form game, player $i$'s decision point is reached with probability 1, so there is no earlier own-reach probability to remove. Hence the Q-value and counterfactual value both reduce to
+$ q_(i)(a_i) := EE_(a_(-i) ~ x_(-i))[u_(i)(a_i, a_(-i))]. $
+
+We fix player $i$'s action and average over the opponents' actions. When $a_i$ has positive probability under player $i$'s current strategy, this is also the ordinary conditional expectation of player $i$'s payoff given that player $i$ chooses $a_i$: by independence, conditioning on $a_i$ leaves the distribution of $a_(-i)$ unchanged. The formula above remains meaningful even when player $i$ assigns zero probability to $a_i$, in which case that ordinary conditional expectation is undefined.
+
 *Notation for tree-form decision processes*  We recall the following notation for dealing with tree-form decision processes (TFDPs), introduced in #lecture-link("efg_intro", <sec-tfdp-notation>)[]. The notation is also summarized in @tab:notation.
 
 - We denote the set of decision points in the TFDP as $cal(J)$, and the set of observation points as $cal(K)$. At each decision point $j in cal(J)$, the agent selects an action from the set $A_j$ of available actions. At each observation point $k in cal(K)$, the agent observes a signal $s_k$ from the environment out of a set of possible signals $S_k$.
@@ -105,63 +155,7 @@ In order to formally introduce counterfactual utility, we recall a bit of notati
       before $j$, $p_j = ∅$.],
   )
 ] <tab:notation>
-
-
-
-=== Counterfactual values, Q-values, and conditional expectations <sec-cfr-values>
-
-Both a Q-value and a counterfactual value evaluate an action at a decision point, assuming that subsequent play follows the current strategies. The difference is how they account for _getting to_ that decision point.
-
-- A *Q-value* asks: “If I were at this decision point and took this action, what continuation payoff should I expect?”
-- A *counterfactual value* evaluates the same action while keeping the opponents' and chance's probabilities of reaching this decision point, but leaving out your own earlier action probabilities.
-
-// Keep the worked example and its table together.
-#block(breakable: false)[
-  #example[
-    Consider the following decision process.
-
-    - You choose $sans("enter")$ with probability 0.1; otherwise your payoff is 0.
-    - After $sans("enter")$, chance lets you continue with probability 0.2; otherwise your payoff is 0.
-    - If you continue, you reach decision point $j$, where action $upsans(A)$ pays 10 and action $upsans(B)$ pays 4.
-
-    The actual probability of reaching $j$ is $0.1 times 0.2 = 0.02$.
-
-    #align(center, table(
-      stroke: none,
-      columns: 4,
-      align: (left, right, right, right),
-      inset: .7em,
-      table.header([*Quantity*], [*Multiplier*], [*A*], [*B*]),
-      [Q-value], [1], [10], [4],
-      [Counterfactual value], [0.2], [2], [0.8],
-      [Expected payoff], [0.02], [0.2], [0.08],
-    ))
-
-    The $upsans(A)$ and $upsans(B)$ columns assume that you choose the corresponding action at $j$. The Q-value is the continuation value once the player is placed at $j$; the counterfactual value additionally keeps chance's 0.2 reach probability but not your $sans("enter")$ probability; the expected payoff of the whole game keeps both.
-  ] <ex-cfr-values>
-]
-
-More generally, fix all strategies in a perfect-recall game, and let $Q_(i)(j, a)$ and $v_(i)^("cf")(j, a)$ denote player $i$'s Q-value and counterfactual value of action $a in A_j$ at decision point $j$. By perfect recall, all histories in the same decision point $j$ share the same parent sequence of player $i$.
-
-Let $w_(-i)(j)$ denote the external (or counterfactual) reach probability of $j$: the probability weight contributed by opponents and chance, excluding player $i$'s own earlier action probabilities. Whenever $w_(-i)(j) > 0$, the Q-value is the counterfactual value normalized by this external reach probability:
-$ v_(i)^("cf")(j, a) = w_(-i)(j) dot Q_(i)(j, a). $
-
-Thus, $Q_(i)(j, a)$ describes the continuation value of choosing $a$ once the player is placed at $j$, whereas the counterfactual value also retains the probability that opponents and chance make $j$ possible. Player $i$'s own probability of reaching $j$ is deliberately excluded, while player $i$'s strategy after taking $a$ still matters. We use the unnormalized counterfactual-value convention here.
-
-If the event of reaching $j$ and choosing $a$ has positive probability under the current strategy profile, then $Q_(i)(j, a)$ agrees with the ordinary conditional expectation of the payoff given that event. However, the Q-value is an action value and can still be defined when player $i$'s own earlier strategy gives $j$ zero actual reach, or when the current strategy assigns zero probability to action $a$. In those cases, the corresponding ordinary conditional expectation is undefined.
-
-This is one reason CFR works with counterfactual values. Even if your strategy in @ex-cfr-values never chooses $sans("enter")$, the Q-values at $j$ remain 10 and 4, and the counterfactual values remain 2 and 0.8. A full-tree CFR update can therefore evaluate the actions at $j$ even when your current strategy never reaches it.
-
-*Connection to normal form* In a one-shot normal-form game, player $i$'s decision point is reached with probability 1, so there is no earlier own-reach probability to remove. Hence the Q-value and counterfactual value both reduce to
-$ q_(i)(a_i) := EE_(a_(-i) ~ x_(-i))[u_(i)(a_i, a_(-i))]. $
-
-We fix player $i$'s action and average over the opponents' actions. When $a_i$ has positive probability under player $i$'s current strategy, this is also the ordinary conditional expectation of player $i$'s payoff given that player $i$ chooses $a_i$: by independence, conditioning on $a_i$ leaves the distribution of $a_(-i)$ unchanged. The formula above remains meaningful even when player $i$ assigns zero probability to $a_i$, in which case that ordinary conditional expectation is undefined.
 == Pseudocode for CFR
-
-CFR is parametric on the regret minimizers $R_j$ run locally at each decision point: any regret minimizer for the simplex $Delta(A_j)$ can be used. Popular options are regret matching and regret matching plus. // TODO: add #lecture-link to those sections
-At every iteration $t$, CFR combines the local strategies into an overall strategy, evaluates the utilites, and uses the resulting local utiltiy information to update each regret minimizer. On a high level:
-
-$ "Current strategy" -> "Current utility" -> "Local regret update" -> "Next strategy strategy" $
 
 #pseudocode-list(numbered-title: [CFR regret minimizer])[
   - *Data:* $R_j$, regret minimizer for $Delta(A_j)$; one for each decision point $j in cal(J)$ of the TFDP.
@@ -200,24 +194,22 @@ $ "Current strategy" -> "Current utility" -> "Local regret update" -> "Next stra
 
 === Clarifying the Pseudocode
 
-- *Overall data flow.* At each iteration, `NextStrategy` asks every $R_j$ for its local strategy $vb_j^((t))$ and combines them into a sequence-form strategy $vx^((t))$. The resulting strategy is evaluated to obtain the global utility vector $vg^((t))$. `ObserveUtility` then computes local counterfactual utility vectors and passes them to the regret minimizers $R_j$, which update their regrets and determine the strategies for the next iteration. The two functions are linked: `ObserveUtility` uses the same $vb_j^((t))$ that `NextStrategy` produced in this iteration, and the regrets it updates decide what `NextStrategy` returns in the next one.
+*Data flow.* Current strategy $vx^((t))$ $->$ current utility $vg^((t))$ $->$ local regret updates in the $R_j$ $->$ next strategy. `ObserveUtility` uses the same $vb_j^((t))$ that `NextStrategy` just produced.
 
-- *Global versus local utility.* $vg^((t)) in RR^Sigma$ is the utility of the current iteration only (it is not cumulative), with one entry per sequence. $vg_j^((t)) in RR^(A_j)$ is the local counterfactual utility that only the regret minimizer $R_j$ at decision point $j$ sees.
 
-- *Utility versus counterfactual utility.* The utility of an action is the expected utility of taking it under the current strategy. The counterfactual utility multiplies this by the probability of reaching that decision point through chance and opponent actions, excluding the acting player's own reach probability. This allows CFR to measure regret even at unlikely decision points under the current strategy.
+*`NextStrategy`*
+- _Step 1 (local strategies)._ Each $R_j$ returns a distribution $vb_j^((t))$ over $A_j$. It is a _behavioral_ strategy: it says what to play _given that $j$ is reached_. Any regret minimizer works here (e.g., regret matching).
+- _Top-down loop._ We need $vx^((t))[p_j]$ (the parent sequence) to be filled in before its children
+- _$vx^((t))[j a]$._ This is the probability that the player plays the whole sequence $j a$, i.e., the product of local probabilities along the path. If $p_j = emptyset$, the parent is the empty sequence, which has probability 1, so we just copy $vb_j^((t))[a]$.
+- _Why it is valid._ The sequence-form constraint says that the probability of the parent sequence equals the sum of the probabilities of its children: $vx^((t))[p_j] = sum_(a in A_j) vx^((t))[j a]$. This holds because $sum_(a in A_j) vx^((t))[j a] = vx^((t))[p_j] dot sum_(a in A_j) vb_j^((t))[a] = vx^((t))[p_j] dot 1$. In other words, the probability of reaching $j$ is split among its actions according to $vb_j^((t))$, so nothing is gained or lost.
 
-- *The global utility vector already includes reach weighting.* The sequence-form utility vector $vg^((t))$ already encodes the relevant chance and opponent reach probabilities. Therefore, the bottom-up recursion does not multiply by these probabilities again. At a decision point $j$, the value is the sum of the child values weighted by the acting player's current strategy $vb_j^((t))$; at an observation point $k$, it is simply the sum of the child values.
-
-- *Why $vg^((t))[j a]$ is not initialized to zero.* The coordinate $vg^((t))[j a]$ comes from the global utility vector for the current iteration. It is not a temporary value initialized by the bottom-up recursion (the only thing initialized to zero is the local vector $vg_j^((t))$, which is immediately overwritten). It may be nonzero even when $j a$ is a nonterminal sequence. For example, the opponent may end the game after $j a$ and before the player acts again, and that payoff is attached to $j a$.
-
-- *$j$ is an information set, not a history.* In an imperfect-information game, one decision point $j$ may correspond to several histories of the game tree, and $rho(j, a)$ returns the next decision or observation point of the player's TFDP, not a node of the game tree.
-
-- *How the local strategies form a sequence-form strategy.* The function `NextStrategy` traverses decision points from top to bottom. For a first action, it sets $vx^((t))[j a] <- vb_j^((t))[a]$. Otherwise, it multiplies the probability of the parent sequence by the local probability of choosing $a$:
-  $ vx^((t))[j a] <- vx^((t))[p_j] dot vb_j^((t))[a] . $
-  Thus, $vx^((t))$ represents the probabilities of the player's sequences, not just the local action probabilities.
-
-- *The regret minimizer is abstract.* Each $R_j$ operates locally over the action simplex $Delta(A_j)$. The pseudocode does not require a particular regret-minimization algorithm: it can use regret matching, regret matching+, or another suitable regret minimizer. The specific choice determines how the local counterfactual utility $vg_j^((t))$ is converted into the next strategy, but the counterfactual utility passed to $R_j$ is the same.
-
+*`ObserveUtility`*
+- _Input $vg^((t))$._ The utility of this iteration only (not cumulative), with $u^((t))(vx) = vg^((t))^top vx$. The entry $vg^((t))[j a]$ collects payoffs that occur right after the player plays $j a$, _already multiplied by the probabilities of chance and the opponent_. It can be nonzero even if $j a$ is nonterminal, since the opponent may end the game after $j a$.
+- _$V^((t))[bot] <- 0$._ $bot$ means "nothing follows"; $rho(j, a) = bot$ when no decision or observation point comes after $j a$.
+- _Bottom-up loop._ $V^((t))[v]$ uses the values of its children, so we must traverse bottom up.
+- _$V^((t))[j]$._ This is the expected utility in the subtree of $j$, assuming $j$ is reached. We multiply only by $vb_j^((t))[a]$ because the player's own choice at $j$ is the only randomness not already inside $vg^((t))$. We also do _not_ multiply by the probability that the player reaches $j$; this is what makes the value "counterfactual".
+- _$V^((t))[k]$._ At an observation point no action is taken, so we just sum over signals. Their probabilities are already inside $vg^((t))$.
+- _$vg_j^((t))[a]$._ This is the immediate utility of $j a$ plus the continuation value below it. It is the same quantity as inside the sum for $V^((t))[j]$, but _without_ the weight $vb_j^((t))[a]$, so that $R_j$ can compare actions. The regret decomposes into local regrets weighted by the player's own reach, so $R_j$ needs no such weight and also learns at rarely reached points. 
 
 == A Tree-Based Version of CFR
 
@@ -237,26 +229,33 @@ The previous pseudocode encodes chance and opponent reach probabilities in the g
 
   - *Step 3: Update regrets and strategies.* For each information set $j$ of player $i$:
     + Compute $U_j <- sum_(a in A_j) vb_j^((t))[a] dot vg_j^((t))[a]$.
-    + For each action $a in A_j$, update the cumulative regret $C_j (a) <- C_j (a) + vg_j^((t))[a] - U_j$. The increment $vg_j^((t))[a] - U_j$ is the instantaneous regret $r_j (a)$.
-    + Update $vb_j^((t+1))$ using the local regret minimizer $R_j$ (for regret matching, proportionally to $max(C_j (a), 0)$).
+    + For each action $a in A_j$, compute the instantaneous regret $r_j (a) <- vg_j^((t))[a] - U_j$.
+    + Pass $r_j$ to the local regret minimizer $R_j$ and obtain $vb_j^((t+1))$. _For regret matching:_ $R_j$ keeps the cumulative regret $C_j (a) <- C_j (a) + r_j (a)$ and sets $vb_j^((t+1))[a]$ proportional to $max(C_j (a), 0)$. Other regret minimizers update differently and need not keep cumulative regrets.
 ]
 
 Here, $V(h)$ is the expected payoff to player $i$ _conditional on reaching node $h$_ and following the current strategies thereafter. It is *not* the same object as $V^((t))[dot]$ in the sequence-form pseudocode: $V(h)$ does not include any reach probability of getting to $h$, while the reach weighting of $V^((t))[dot]$ is hidden inside $vg^((t))$. In Step 2, the product includes only chance and opponent action probabilities along the path to $h$, not player $i$'s own action probabilities. Also, $h a$ denotes the node reached by playing $a$ at $h$.
-
 === Why this is equivalent
 
-Both procedures compute the same counterfactual utilities; they differ only in when chance and opponent probabilities are applied.
+Both procedures compute the same counterfactual utilities. They differ only in _where_ chance and opponent probabilities are applied.
 
-Consider a terminal node $z$ below action $a$ at decision point $j$. Its contribution to $vg_j^((t))[a]$ is the payoff $u_i (z)$, weighted by chance and opponent probabilities along the path from the root to $z$, and by player $i$'s own action probabilities below $j a$.
+*How $vg^((t))$ encodes them.* Each terminal node $z$ contributes $u_i (z)$ times $p(e)$ for every chance or opponent edge $e$ on the path to $z$. This product is added to the entry of $vg^((t))$ for the last sequence player $i$ played before $z$.
 
-- *Sequence-form pseudocode:* The global utility vector $vg^((t))$ already incorporates chance and opponent reach probabilities. The recursion for $V^((t))$ then applies player $i$'s strategy probabilities and sums at observation points.
-- *Tree-based procedure:* Step 1 computes $V(h a)$, incorporating probabilities along the path from $h a$ onward. Step 2 multiplies this value by the chance and opponent probabilities along the path from the root to $h$, giving the same weighting.
+*Where each procedure applies them.*
+- _Sequence form:_ nowhere in the code. They are already inside the input $vg^((t))$, and the recursion only multiplies by player $i$'s own $vb_j^((t))[a]$.
+- _Tree-based:_ explicitly, in two places. Step 1 applies them below $h a$ (inside $V(h a)$), and Step 2 applies them above $h$ (the product from the root to $h$).
 
-By perfect recall, each terminal node below $j a$ corresponds to exactly one history $h in j$. Thus, Step 2 counts each terminal node exactly once, and
+*Why the results match.* Fix an action $a$ at the information set $j$ and a terminal node $z$ below $j a$. The information set $j$ contains several histories (game-tree nodes), and the path from the root to $z$ passes through at least one of them. By perfect recall, a player never returns to the same information set along one path, so no two histories of $j$ lie on the same path. Hence the path to $z$ passes through exactly one history $h in j$, and Step 2 counts $z$ once. Along this path, $u_i (z)$ gets multiplied by three groups of probabilities:
++ chance and opponent edges from the root to $h$,
++ chance and opponent edges from $h a$ down to $z$,
++ player $i$'s own $vb_j^((t))$ probabilities from $j a$ down to $z$.
 
+Both procedures multiply in all three groups, just at different times:
+- _Sequence form:_ groups 1 and 2 are already inside $vg^((t))$ when $z$'s payoff is stored there. The recursion for $V^((t))$ then multiplies in group 3 on the way up to $j a$.
+- _Tree-based:_ $V(h a)$ multiplies in groups 2 and 3 on the way up from $z$ to $h a$. Step 2 then multiplies in group 1.
+
+Since each $z$ gets the same product in both, summing over all $z$ below $j a$ gives
 $ vg^((t))[j a] + V^((t))[rho(j, a)] = sum_(h in j) (product_("chance or opponent edges " e " on the path from the root to " h) p(e)) dot V(h a) . $
-
-The left side is the counterfactual utility computed by `ObserveUtility`, and the right side is the one computed by the tree-based procedure. Therefore, both procedures compute the same counterfactual utilities. Since both then use the same regret minimizer $R_j$, they produce the same CFR update.
+The left side is computed by `ObserveUtility` and the right side by Step 2, so both feed the same $vg_j^((t))$ to the same $R_j$ and produce the same CFR update.
 
 == Worked example: one iteration of CFR
 
@@ -314,11 +313,12 @@ $ 1/3 (0.2)(-10) + 1/3 (0.8)(15) + 2/3 (0.4)(-20) + 2/3 (0.6)(15) = -2/3 + 4 - 1
 
 *Fold:* the game ends, regardless of B's card, so the value is $-15$.
 
-The expected utility of A's current strategy is $4 dot 0.6 + (-15) dot 0.4 = -3.6$. Subtracting it from the value of each action gives the regret before reach. Consequently, the regret for $(sans("play") , sans("fold"))$ is $(4 - (-3.6) , -15 - (-3.6)) = (7.6 , -11.4)$. We then multiply by the probability of A holding card 1, which is $1 slash 3$, to obtain the counterfactual regrets:
+Given A holds card 1, the expected utility of A's current strategy is $4 dot 0.6 + (-15) dot 0.4 = -3.6$. Subtracting this from the value of each action tells us how much better or worse that action is than the strategy itself: for $(sans("play"), sans("fold"))$ we get $(4 - (-3.6), -15 - (-3.6)) = (7.6, -11.4)$. Finally, we weight by the probability that A holds card 1, which is $1 slash 3$, to obtain the counterfactual regrets:
 
-$ r_"A1" = (7.6/3 , -3.8) . $
+$ r_"A1" = (7.6/3, -3.8) . $
 
 *A has card 2.*
+
 
 *Play:* The only difference in this calculation is the payoffs of each outcome, as described in @tab:cfr-payoffs.
 
@@ -326,13 +326,13 @@ $ 1/3 (0.2)(25) + 1/3 (0.8)(15) + 2/3 (0.4)(5) + 2/3 (0.6)(15) = 5/3 + 4 + 4/3 +
 
 *Fold:* the value is $-15$.
 
-The utility of the current strategy is $13 dot 0.8 + (-15) dot 0.2 = 7.4$. The regret before reach is $(13 - 7.4 , -15 - 7.4) = (5.6 , -22.4)$. After multiplying by the chance of A holding card 2, which is $2 slash 3$:
+As for card 1, we subtract the expected utility of the current strategy, $13 dot 0.8 + (-15) dot 0.2 = 7.4$, from each action's value, giving $(5.6, -22.4)$. Weighting by the probability $2 slash 3$ that A holds card 2:
 
-$ r_"A2" = (11.2/3 , -44.8/3) . $
+$ r_"A2" = (11.2/3, -44.8/3) . $
 
 === Player B
 
-If A folds, B does not act, so only the case where A plays matters for B's decision points.
+If A folds, B does not act, so only the case where A plays matters for B's decision points. For each card, we apply the same three steps as for A: compute the value of each action, subtract the expected utility of B's current strategy, and weight by the probability of holding that card.
 
 *B has card 1.*
 
@@ -344,9 +344,9 @@ $ 1/3 (0.6)(10) + 2/3 (0.8)(-30) = 2 - 16 = -14 . $
 
 $ 1/3 (0.6)(-15) + 2/3 (0.8)(-15) = -3 - 8 = -11 . $
 
-The utility of B's current strategy is $(-14) dot 0.2 + (-11) dot 0.8 = -11.6$. The regret before reach is $(-14 + 11.6 , -11 + 11.6) = (-2.4 , 0.6)$. After multiplying by the chance of B holding card 1, which is $1 slash 3$:
+The expected utility of the current strategy is $(-14) dot 0.2 + (-11) dot 0.8 = -11.6$, so the action values minus this are $(-2.4, 0.6)$. Weighting by $1 slash 3$:
 
-$ r_"B1" = (-0.8 , 0.2) . $
+$ r_"B1" = (-0.8, 0.2) . $
 
 *B has card 2.*
 
@@ -356,10 +356,9 @@ $ 1/3 (0.6)(30) + 2/3 (0.8)(15) = 6 + 8 = 14 . $
 
 *Fold:* $-11$, as before.
 
-The utility of the current strategy is $14 dot 0.4 + (-11) dot 0.6 = -1$. The regret before reach is $(14 + 1 , -11 + 1) = (15 , -10)$. After multiplying by the chance of B holding card 2, which is $2 slash 3$:
+The expected utility of the current strategy is $14 dot 0.4 + (-11) dot 0.6 = -1$, so the action values minus this are $(15, -10)$. Weighting by $2 slash 3$:
 
-$ r_"B2" = (10 , -20/3) . $
-
+$ r_"B2" = (10, -20/3) . $
 === The counterfactual utility
 
 Step 4 can also be applied to the values before computing the regrets, and it gives the same result, because everything is multiplied by the same number. This is how the counterfactual utility $vg_j [a]$ in the pseudocode is calculated. To calculate the counterfactual utilities we simply multiply the value of each action (before reach) by the probability of holding the given card.
@@ -373,6 +372,8 @@ $
 
 Since all $C_j (a)$ started at $0$, the cumulative regrets after this iteration are equal to the regrets above. @tab:cfr-example summarizes the iteration.
 
+We use regret matching as $R_j$ (see Step 3 above). Since $C_j (a)$ started at $0$, the cumulative regrets after this iteration equal the regrets above. @tab:cfr-example summarizes the iteration.
+
 #figure(
   kind: table,
   supplement: [Table],
@@ -380,28 +381,27 @@ Since all $C_j (a)$ started at $0$, the cumulative regrets after this iteration 
 )[
   #table(
     stroke: none,
-    columns: 9,
-    align: center + horizon,
+    columns: 5,
+    align: (left + horizon, center + horizon, center + horizon, center + horizon, center + horizon),
     inset: .5em,
     table.header(
-      [*Decision point*],
-      [*Current* $vb_j (sans("play"))$],
-      [*Value of* $sans("play")$],
-      [*Value of* $sans("fold")$],
-      [*Utility current strategy*],
-      [*Regret before reach*],
-      [*Chance of card*],
-      [*Regret after reach* $r_j$],
-      [*New* $vb_j (sans("play"))$],
+      [],
+      [*A1*],
+      [*A2*],
+      [*B1*],
+      [*B2*],
     ),
     table.hline(),
-    [$"A1"$], [$0.6$], [$4$], [$-15$], [$-3.6$], [$(7.6 , -11.4)$], [$1/3$], [$(7.6/3 , -3.8)$], [$1$],
-    [$"A2"$], [$0.8$], [$13$], [$-15$], [$7.4$], [$(5.6 , -22.4)$], [$2/3$], [$(11.2/3 , -44.8/3)$], [$1$],
-    [$"B1"$], [$0.2$], [$-14$], [$-11$], [$-11.6$], [$(-2.4 , 0.6)$], [$1/3$], [$(-0.8 , 0.2)$], [$0$],
-    [$"B2"$], [$0.4$], [$14$], [$-11$], [$-1$], [$(15 , -10)$], [$2/3$], [$(10 , -20/3)$], [$1$],
+    [*Current* $vb_j (sans("play"))$], [$0.6$], [$0.8$], [$0.2$], [$0.4$],
+    [*Value of* $sans("play")$], [$4$], [$13$], [$-14$], [$14$],
+    [*Value of* $sans("fold")$], [$-15$], [$-15$], [$-11$], [$-11$],
+    [*Utility of current strategy*], [$-3.6$], [$7.4$], [$-11.6$], [$-1$],
+    [*Value minus utility*], [$(7.6 , -11.4)$], [$(5.6 , -22.4)$], [$(-2.4 , 0.6)$], [$(15 , -10)$],
+    [*Chance of card*], [$1/3$], [$2/3$], [$1/3$], [$2/3$],
+    [*Counterfactual regret* $r_j$], [$(7.6/3 , -3.8)$], [$(11.2/3 , -44.8/3)$], [$(-0.8 , 0.2)$], [$(10 , -20/3)$],
+    [*New* $vb_j (sans("play"))$], [$1$], [$1$], [$0$], [$1$],
   )
 ] <tab:cfr-example>
-
 For the new strategy in this example we use regret matching. At $"A1"$ and $"A2"$ only $sans("play")$ has positive regret, so A plays with probability $1$. At $"B1"$ only $sans("fold")$ has positive regret, so B folds with probability $1$. At $"B2"$ only $sans("play")$ has positive regret, so B plays with probability $1$.
 
 This is only one iteration. In later iterations, the new regrets are added to the existing cumulative regrets, so the strategy changes more gradually.
